@@ -1,0 +1,54 @@
+#
+# TW8816 video processor configuration
+#
+
+menu "MXC TW8816 video processor support"
+
+config MXC_TW8816
+	boolean
+
+config VIDEOCODEC_INIT_TW8816
+	tristate "TW8816 based initalization"
+#	depends on I2C
+#	depends on I2C_SWITCH_PCA9548
+	default y
+	select MXC_TW8816
+	help
+	    Say Y here if you have a TW8816 based Carplay device.
+	    TW8816 will be in bypass mode by default.
+
+	    If unsure, say N.
+
+	    To compile this driver as a module, choose M here: the
+	    module will be called tw8816_init.
+
+config TW8816_400X240_INIT
+	bool "400x240 down scaling enabled"
+	depends on VIDEOCODEC_INIT_TW8816
+	default n
+	help
+		Preset TW8816 initial in 400x240 scaling down mode.
+
+config TW8816_400X240_OPTIMUM
+	bool "400x240 down scaling optimized."
+	depends on TW8816_400X240_INIT
+	default n
+	help
+		Optimized LCD display driver to work with TW8816 400x240 scaling down mode.
+
+choice
+	prompt "lcd interface dot clock configuration."
+	default TW8816_LCDIF_35MHZ_DOTCLK
+
+	config TW8816_LCDIF_35MHZ_DOTCLK
+	bool "Dotclock 35MHz."
+	help
+		To use 35MHz for dot clock.
+
+	config TW8816_LCDIF_30MHZ_DOTCLK
+	bool "Dotclock 30MHz."
+	help
+		To use 30MHz for dot clock.
+endchoice
+
+endmenu
