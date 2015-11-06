@@ -52,10 +52,17 @@ u8 event_mode_flag=0; /* ugly!! i2c-core.c needs it!! */
 #define 	MX6_TW8816_VP_RESET		IMX_GPIO_NR(7, 12)	/* GPIO_17 - active low */
 
 
-typedef struct t_tw8816_drvdata{
+typedef struct t_tw8816_drvdata {
 	struct i2c_client	*client;
 	struct input_dev	*input_dev;
 	struct work_struct 	work;
+#ifdef	_USE_3_10_52_
+	/* of gpio pins */
+	struct device *dev;
+	int	chip_id;	
+	int gpio_reset;
+	int gpio_lcdpwr;
+#endif
 } tw8816drvData;
 
 
@@ -1138,6 +1145,7 @@ static int tw8816_init_probe(struct platform_device *dev)
 #else
 static int __init tw8816_init_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
+	struct device_node *of_node = client->dev.of_node;
 	tw8816drvData *pdata;
 	int iRet = 0;
 
@@ -1152,9 +1160,28 @@ static int __init tw8816_init_probe(struct i2c_client *client, const struct i2c_
 
 	pdata->client = client;
 	g_8816DRVdata.client = client;
+
+	tw8816_chip_RESET();
 	
 	DRVKPOPS( "TW8816 chip initial driver built date=[%s,%s] \n", __DATE__, __TIME__ );
 	spriv_LIBdate();
+
+#ifdef _USE_SYSFS_
+	sysfs_class = class_create(THIS_MODULE, "tw8816.class");
+	if (IS_ERR(sysfs_class)) {
+		DRVDBG( KERN_INFO"%s:%s:couldn't create class error !!\n", DrvStr, __FUNCTION__ );
+		DRVKERR( "couldn't create class error !!\n" );
+		return PTR_ERR(sysfs_class);
+	}
+	DRVDBG( KERN_INFO"%s:%s:sysfs class create OK !!\n", DrvStr, __FUNCTION__ );
+	DRVKERR( "sysfs class create OK !!\n" );
+        
+	sysfs_class->suspend = sysfs_suspend;        
+	sysfs_class->resume = sysfs_resume;
+	sysfs_class->dev_attrs = sysfs_attrs;
+        
+	device_create(sysfs_class, NULL, MKDEV(200, 0), NULL, "tw8816.0");
+#endif /* #ifdef _USE_SYSFS_ */
 	
 #ifdef _USE_400x240_INIT_
 	/* 400x240, upper_margin=29, lower_margin=16 */
@@ -1179,6 +1206,12 @@ static int tw8816_init_remove(struct platform_device *dev)
 #else
 static int __exit tw8816_init_remove(struct i2c_client *client)
 {
+	
+#ifdef _USE_SYSFS_
+	device_destroy(sysfs_class, MKDEV(200, 0));
+	class_destroy(sysfs_class);
+#endif /* #ifdef _USE_SYSFS_ */
+
 	g_8816DRVdata.client = 0;
 	return 0;	
 }
@@ -1186,6 +1219,12 @@ static int __exit tw8816_init_remove(struct i2c_client *client)
 
 
 #ifdef CONFIG_ARCH_VEXPRESS
+static const struct of_device_id tw8816drv_dt_ids[] = {
+	{ .compatible = "fsl,tw8816drv", .data = &tw8816_id[0]},
+	{ }
+};
+MODULE_DEVICE_TABLE(of, tw8816drv_dt_ids);
+
 static struct platform_driver tw8816_driver = {
 	.probe		= tw8816_init_probe,
 	.remove		= tw8816_init_remove,
@@ -1195,8 +1234,10 @@ static struct platform_driver tw8816_driver = {
 		.name		= _TW8816DRVNAME_,
 		.owner		= THIS_MODULE,
 ///		.pm			= &tw8816_init_pm_ops,
+		.of_match_table = tw8816drv_dt_ids,	/* add for device tree */
 	},
 };
+module_platform_driver(tw8816_driver);
 #else
 
 /* add for device tree */
@@ -1220,6 +1261,7 @@ static struct i2c_driver tw8816_driver = {
 ///	.resume = tw8816_init_drv_resume,
 	.id_table	= tw8816_id,
 };
+module_i2c_driver(tw8816_driver);
 #endif	/* CONFIG_ARCH_VEXPRESS */
 
 static void tw8816_chip_RESET(void)
@@ -1262,7 +1304,7 @@ static void tw8816_chip_RESET(void)
 	msleep(150);	/// wait for statable
 }
 
-
+#if 0
 static int __init tw8816_init_init(void)
 {
 	int ret;
@@ -1332,7 +1374,7 @@ static void __exit tw8816_init_exit(void)
 	DRVDBG( KERN_INFO"%s:%s:---\n", DrvStr, __FUNCTION__ );
 }
 module_exit(tw8816_init_exit);
-
+#endif
 
 MODULE_AUTHOR("span liu <spanliu@mic.com.tw>");
 MODULE_DESCRIPTION("TW8816 video codec init driver");
