@@ -9,7 +9,7 @@ config MXC_TW8816
 
 config VIDEOCODEC_INIT_TW8816
 	tristate "TW8816 based initalization"
-#	depends on I2C
+	depends on I2C
 #	depends on I2C_SWITCH_PCA9548
 	default y
 	select MXC_TW8816
