@@ -32,6 +32,10 @@
 #include <linux/delay.h>
 #include <linux/module.h>
 
+#include <linux/of.h>
+#include <linux/of_device.h>
+#include <linux/of_gpio.h>
+
 #include "tw8816_init.h"
 
 MODULE_LICENSE("Dual BSD/GPL");
@@ -58,7 +62,8 @@ typedef struct t_tw8816_drvdata {
 	struct work_struct 	work;
 #ifdef	_USE_3_10_52_
 	/* of gpio pins */
-	struct device *dev;
+	///struct device *dev;
+	struct device *pdev;
 	int	chip_id;	
 	int gpio_reset;
 	int gpio_lcdpwr;
@@ -1160,6 +1165,14 @@ static int __init tw8816_init_probe(struct i2c_client *client, const struct i2c_
 
 	pdata->client = client;
 	g_8816DRVdata.client = client;
+	if (of_node) {
+		pdata->pdev = &client->dev;
+		g_8816DRVdata.pdev = &client->dev;
+		pdata->gpio_reset = of_get_named_gpio(of_node, "tw8816reset-gpios", 0);
+		pdata->gpio_lcdpwr = of_get_named_gpio(of_node, "lcdpoweron-gpios", 0);
+		g_8816DRVdata.gpio_reset = of_get_named_gpio(of_node, "tw8816reset-gpios", 0);
+		g_8816DRVdata.gpio_lcdpwr = of_get_named_gpio(of_node, "lcdpoweron-gpios", 0);
+	}
 
 	tw8816_chip_RESET();
 	
@@ -1267,6 +1280,69 @@ module_i2c_driver(tw8816_driver);
 static void tw8816_chip_RESET(void)
 {
 #ifdef _USE_3_10_52_
+	int ret;
+
+	DRVDBG( KERN_INFO"%s:%s:+++\n", DrvStr, __FUNCTION__ );
+	DRVKNOT( "+++\n" );
+
+	if (!gpio_is_valid(g_8816DRVdata.gpio_reset)) {
+		DRVKERR( "gpio_reset[%d] is not valid\n", g_8816DRVdata.gpio_reset );
+	}
+	if (!gpio_is_valid(g_8816DRVdata.gpio_lcdpwr)) {
+		DRVKERR( "gpio_lcdpwr[%d] is not valid\n", g_8816DRVdata.gpio_lcdpwr );
+	}
+
+
+	ret = devm_gpio_request(g_8816DRVdata.pdev, g_8816DRVdata.gpio_reset, "tw8816_codec_reset");
+	if (ret < 0) {
+		DRVKERR( "devm_gpio_request fail [%d,%s]\n", ret, "tw8816_codec_reset" );
+		return ret;
+	}
+	ret = gpio_direction_output(g_8816DRVdata.gpio_reset, 1);
+	if (ret < 0) {
+		DRVKERR( "gpio_direction_output fail [%d,%s]\n", ret, "tw8816_codec_reset" );
+		///return ret;
+	} else {
+		gpio_set_value(g_8816DRVdata.gpio_reset, 0);
+		gpio_free(g_8816DRVdata.gpio_reset);
+		DRVKPOPS( "MX6_TW8816_VP_RESET pin set low OK !!\n" );
+	}
+
+	ret = devm_gpio_request(g_8816DRVdata.pdev, g_8816DRVdata.gpio_lcdpwr, "tw8816_codec_pwr_on");
+	if (ret < 0) {
+		DRVKERR( "devm_gpio_request fail [%d,%s]\n", ret, "tw8816_codec_pwr_on" );
+		return ret;
+	}
+	ret = gpio_direction_output(g_8816DRVdata.gpio_lcdpwr, 1);
+	if (ret < 0) {
+		DRVKERR( "gpio_direction_output fail [%d,%s]\n", ret, "tw8816_codec_pwr_on" );
+		///return ret;
+	} else {
+		gpio_set_value(g_8816DRVdata.gpio_lcdpwr, 1);
+		gpio_free(g_8816DRVdata.gpio_lcdpwr);
+		DRVKPOPS( "MX6_TW8816_LCD_PWR_ON pin set high OK !!\n" );
+	}
+
+	msleep(100);	/// reset time
+
+	ret = devm_gpio_request(g_8816DRVdata.pdev, g_8816DRVdata.gpio_reset, "tw8816_codec_reset");
+	if (ret < 0) {
+		DRVKERR( "devm_gpio_request fail [%d,%s]\n", ret, "tw8816_codec_reset" );
+		return ret;
+	}
+	ret = gpio_direction_output(g_8816DRVdata.gpio_reset, 1);
+	if (ret < 0) {
+		DRVKERR( "gpio_direction_output fail [%d,%s]\n", ret, "tw8816_codec_reset" );
+		///return ret;
+	} else {
+		gpio_set_value(g_8816DRVdata.gpio_reset, 1);
+		gpio_free(g_8816DRVdata.gpio_reset);
+		DRVKPOPS( "MX6_TW8816_VP_RESET pin set high OK !!\n" );
+	}
+
+	DRVKNOT( "---\n" );
+	DRVDBG( KERN_INFO"%s:%s:---\n", DrvStr, __FUNCTION__ );
+
 #else	
 	int ret;
 	ret = gpio_request(MX6_TW8816_VP_RESET, "tw8816_codec_reset");

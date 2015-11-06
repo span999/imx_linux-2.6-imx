@@ -132,8 +132,10 @@
 /* add tw8166 device */
 &i2c3 {
 	tw8816drv@45 {
-                compatible = "fsl,tw8816drv";
-                reg = <0x45>;
+		compatible = "fsl,tw8816drv";
+		reg = <0x45>;
+		tw8816reset-gpios = <&gpio7 12 0>;
+		lcdpoweron-gpios = <&gpio3 20 0>;
 	};
 };
 
@@ -372,6 +374,7 @@
 				MX6QDL_PAD_GPIO_2__GPIO1_IO02 0x80000000
 				///MX6QDL_PAD_SD1_CMD__GPIO1_IO18 0x80000000
 				MX6QDL_PAD_GPIO_17__GPIO7_IO12 0x80000000
+				MX6QDL_PAD_EIM_D20__GPIO3_IO20 0x80000000
 			>;
 		};
 	};
