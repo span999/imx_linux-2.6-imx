@@ -214,8 +214,77 @@
  * modify for n488. +++
  */
 
+/*
+&backlight {
+	status = "disabled";
+};
+
+&gpio-keys {
+	status = "disabled";
+};
+
+&leds {
+	status = "disabled";
+};
+
+&sound-hdmi {
+	status = "disabled";
+};
+
+&sound {
+	status = "disabled";
+};
+*/
+
+&audmux {
+	status = "disabled";
+};
 
 &ecspi1 {
+	status = "disabled";
+};
+
+&hdmi_audio {
+	status = "disabled";
+};
+
+&hdmi_cec {
+	status = "disabled";
+};
+
+&hdmi_core {
+	status = "disabled";
+};
+
+&hdmi_video {
+	status = "disabled";
+};
+
+&mipi_csi {
+	status = "disabled";
+};
+
+&mipi_dsi {
+	status = "disabled";
+};
+
+&dcic1 {
+	status = "disabled";
+};
+
+&dcic2 {
+	status = "disabled";
+};
+
+&pcie {
+	status = "disabled";
+};
+
+&pwm1 {
+	status = "disabled";
+};
+
+&ov564x {
 	status = "disabled";
 };
 
@@ -236,6 +305,58 @@
 	status = "okay";
 };
 
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog_2>;
+
+	hog {
+		pinctrl_hog_2: hoggrp-2 {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_4__GPIO1_IO04   0x80000000
+				MX6QDL_PAD_GPIO_5__GPIO1_IO05   0x80000000
+				MX6QDL_PAD_NANDF_D0__GPIO2_IO00 0x80000000
+				MX6QDL_PAD_NANDF_D1__GPIO2_IO01 0x80000000
+				MX6QDL_PAD_NANDF_D2__GPIO2_IO02 0x80000000
+				MX6QDL_PAD_NANDF_D3__GPIO2_IO03 0x80000000
+				MX6QDL_PAD_NANDF_ALE__GPIO6_IO08 0x80000000
+				MX6QDL_PAD_NANDF_CLE__GPIO6_IO07 0x80000000
+				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x130b0
+				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15 0x80000000
+				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16 0x80000000
+				MX6QDL_PAD_EIM_D26__GPIO3_IO26 0x80000000
+				MX6QDL_PAD_EIM_CS1__GPIO2_IO24 0x80000000
+				MX6QDL_PAD_ENET_RXD0__GPIO1_IO27 0x80000000
+				MX6QDL_PAD_EIM_A25__GPIO5_IO02 0x80000000
+				MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x80000000
+				MX6QDL_PAD_ENET_TXD1__GPIO1_IO29 0x80000000
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22  0x80000000
+				MX6QDL_PAD_NANDF_CS0__GPIO6_IO11 0x80000000
+				MX6QDL_PAD_NANDF_CS1__GPIO6_IO14 0x80000000
+				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000
+				MX6QDL_PAD_EIM_D16__GPIO3_IO16 0x80000000
+				MX6QDL_PAD_EIM_DA9__GPIO3_IO09 0x80000000
+				MX6QDL_PAD_GPIO_4__GPIO1_IO04 0x80000000
+				MX6QDL_PAD_GPIO_5__GPIO1_IO05 0x80000000
+				MX6QDL_PAD_EIM_D29__GPIO3_IO29 0x80000000
+				///MX6QDL_PAD_SD3_RST__GPIO7_IO08 0x80000000
+				MX6QDL_PAD_GPIO_9__GPIO1_IO09 0x80000000
+				MX6QDL_PAD_GPIO_1__WDOG2_B 0x80000000
+				MX6QDL_PAD_GPIO_2__GPIO1_IO02 0x80000000
+				///MX6QDL_PAD_SD1_CMD__GPIO1_IO18 0x80000000
+			>;
+		};
+	};
+
+};
+
+&usdhc1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc1_1>;
+	cd-gpios = <&gpio2 7 0>;
+	no-1-8-v;
+	keep-power-in-suspend;
+	status = "okay";
+};
 
 &usdhc2 {
 	status = "disabled";
