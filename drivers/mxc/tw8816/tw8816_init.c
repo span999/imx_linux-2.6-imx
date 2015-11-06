@@ -1198,12 +1198,21 @@ static struct platform_driver tw8816_driver = {
 	},
 };
 #else
+
+/* add for device tree */
+static const struct of_device_id tw8816drv_dt_ids[] = {
+	{ .compatible = "fsl,tw8816drv", .data = &tw8816_id[0]},
+	{ }
+};
+MODULE_DEVICE_TABLE(of, tw8816drv_dt_ids);
+
 static SIMPLE_DEV_PM_OPS(tw8816_init_pm_ops, tw8816_init_pm_suspend, tw8816_init_pm_resume);
 static struct i2c_driver tw8816_driver = {
 	.driver = {
 		.name	= _TW8816DRVNAME_,
 		.owner	= THIS_MODULE,
 		.pm	= &tw8816_init_pm_ops,
+		.of_match_table = tw8816drv_dt_ids,	/* add for device tree */
 	},
 	.probe	= tw8816_init_probe,
 	.remove	= tw8816_init_remove,
